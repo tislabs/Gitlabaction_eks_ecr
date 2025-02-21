@@ -5,11 +5,22 @@ stages:
 variables:
   AWS_DEFAULT_REGION: eu-north-1
   CLUSTER_NAME: demo-cluster
-  ECR_REPOSITORY: 992382840772.dkr.ecr.eu-north-1.amazonaws.com 
+  ECR_REPOSITORY: demo-repo  # Replace with your actual ECR repository name (not the full URL)
   IMAGE_TAG: latest
   NGINX_IMAGE: nginx:latest  # Use the official NGINX Docker image
+  AWS_ACCOUNT_ID: 992382840772  # Replace with your AWS account ID (if not set as a CI/CD variable)
+  AWS_REGION: eu-north-1
 
-
+before_script:
+  - apt-get update && apt-get install -y curl unzip
+  - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  - unzip awscliv2.zip
+  - sudo ./aws/install
+  - curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/amd64/kubectl"
+  - chmod +x kubectl
+  - mv kubectl /usr/local/bin/
+  - aws --version
+  - kubectl version --client
 
 # Build and push Docker image to ECR
 build_and_push:
@@ -19,9 +30,13 @@ build_and_push:
     - docker:dind
   script:
     - docker --version
+    # ECR login
     - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+    # Pull official NGINX image from Docker Hub
     - docker pull $NGINX_IMAGE
+    # Tag the image for ECR
     - docker tag $NGINX_IMAGE $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+    # Push the image to ECR
     - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
 # Deploy to EKS using kubectl
@@ -31,8 +46,11 @@ deploy_to_eks:
   script:
     - echo "Setting up kubeconfig"
     - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
+    # Check if kubectl can interact with the cluster
     - kubectl get nodes
+    # Apply Kubernetes resources (deployment, service, ingress)
     - kubectl apply -f k8s/deployment.yaml
     - kubectl apply -f k8s/service.yaml
     - kubectl apply -f k8s/ingress.yaml
+    # Get the status of pods
     - kubectl get pods
