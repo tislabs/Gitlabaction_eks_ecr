@@ -11,7 +11,7 @@ variables:
   ECR_REPOSITORY: $CI_ECR_REPOSITORY  # Set your ECR repository name (GitLab variable)
   IMAGE_TAG: $CI_COMMIT_REF_NAME  # GitLab default for branch name
   AWS_ACCOUNT_ID: $CI_AWS_ACCOUNT_ID  # Set your AWS Account ID (GitLab variable)
-  ECR_REGISTRY: $992382840772.dkr.ecr.eu-north-1.amazonaws.com
+  
 
 # Step 1: AWS Authentication and Setup
 login_to_aws:
@@ -41,7 +41,7 @@ build_and_push_to_ecr:
     - echo "Tagging NGINX image for ECR"
     - docker tag nginx:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  # Tagging the image
     - echo "Pushing NGINX image to ECR"
-    - docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  # Push the image to ECR
+    - docker push 992382840772.dkr.ecr.eu-north-1.amazonaws.com/merchant_api/$ECR_REPOSITORY:$IMAGE_TAG  # Push the image to ECR
   only:
     - main  # Trigger this job only for the main branch
 
