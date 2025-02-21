@@ -2,15 +2,17 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nginx-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /  # Optional: to rewrite the URL
 spec:
   rules:
-  - host: <your-domain-name>  # Replace with your domain if using Ingress
+  - host: <your-domain-name>   # Replace with your domain (e.g., 'example.com')
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: nginx-service
+            name: nginx-service  # The name of the service to route traffic to
             port:
-              number: 80
+              number: 80         # The port exposed by your service
