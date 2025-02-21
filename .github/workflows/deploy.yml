@@ -8,7 +8,7 @@ stages:
 variables:
   AWS_DEFAULT_REGION: $CI_AWS_REGION  # Set the AWS region (GitLab variable)
   CLUSTER_NAME: $CI_EKS_CLUSTER_NAME  # Set the EKS cluster name (GitLab variable)
-  ECR_REPOSITORY: $CI_ECR_REPOSITORY  # Set your ECR repository name (GitLab variable)
+  ECR_REPOSITORY: $CI_ECR_REPOSITORY  # Set your ECR repository name (GitLab variiable)
   IMAGE_TAG: $CI_COMMIT_REF_NAME  # GitLab default for branch name
   AWS_ACCOUNT_ID: $CI_AWS_ACCOUNT_ID  # Set your AWS Account ID (GitLab variable)
   
@@ -39,9 +39,9 @@ build_and_push_to_ecr:
     - echo "Pulling NGINX image from Docker Hub"
     - docker pull nginx:latest  # Pull the official NGINX image
     - echo "Tagging NGINX image for ECR"
-    - docker tag nginx:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  # Tagging the image
+    - docker tag nginx:latest 992382840772.dkr.ecr.eu-north-1.amazonaws.com/merchant_api/:$IMAGE_TAG   # Tagging the image
     - echo "Pushing NGINX image to ECR"
-    - docker push 992382840772.dkr.ecr.eu-north-1.amazonaws.com/merchant_api/$ECR_REPOSITORY:$IMAGE_TAG  # Push the image to ECR
+    - docker push 992382840772.dkr.ecr.eu-north-1.amazonaws.com/merchant_api/:$IMAGE_TAG  # Push the image to ECR
   only:
     - main  # Trigger this job only for the main branch
 
