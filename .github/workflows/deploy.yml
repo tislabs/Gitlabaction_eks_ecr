@@ -1,49 +1,54 @@
 stages:
   - login
   - build
-  - deploy
   - install_kubectl
+  - deploy
   - deploy_to_cluster
 
 variables:
-  AWS_DEFAULT_REGION: $CI_AWS_REGION
-  CLUSTER_NAME: $CI_EKS_CLUSTER_NAME
-  ECR_REPOSITORY: $CI_ECR_REPOSITORY  # Replace with your ECR repository name om
-  IMAGE_TAG: $CI_COMMIT_REF_NAME
-  AWS_ACCOUNT_ID: $CI_AWS_ACCOUNT_ID  # Set this in GitLab CI/CD variables
-  ECR_REGISTRY: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+  AWS_DEFAULT_REGION: $CI_AWS_REGION  # Set the AWS region (GitLab variable)
+  CLUSTER_NAME: $CI_EKS_CLUSTER_NAME  # Set the EKS cluster name (GitLab variable)
+  ECR_REPOSITORY: $CI_ECR_REPOSITORY  # Set your ECR repository name (GitLab variable)
+  IMAGE_TAG: $CI_COMMIT_REF_NAME  # GitLab default for branch name
+  AWS_ACCOUNT_ID: $CI_AWS_ACCOUNT_ID  # Set your AWS Account ID (GitLab variable)
+  ECR_REGISTRY: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com  # ECR registry URL
 
 # Step 1: AWS Authentication and Setup
 login_to_aws:
   stage: login
-  image: amazon/aws-cli:latest
+  image: amazon/aws-cli:latest  # AWS CLI image for login
   script:
+    - echo "Getting AWS account information"
     - aws sts get-caller-identity
   only:
     - main  # Trigger this job only for the main branch
+  before_script:
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    - aws configure set region $AWS_DEFAULT_REGION
 
 # Step 2: Pull NGINX image and push to ECR
 build_and_push_to_ecr:
   stage: build
-  image: docker:latest
+  image: docker:20.10.7  # Docker image for building and pushing
   services:
     - docker:dind
   script:
-    - echo "Logging into ECR"
+    - echo "Logging into AWS ECR"
     - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
     - echo "Pulling NGINX image from Docker Hub"
     - docker pull nginx:latest  # Pull the official NGINX image
     - echo "Tagging NGINX image for ECR"
-    - docker tag nginx:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    - docker tag nginx:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  # Tagging the image
     - echo "Pushing NGINX image to ECR"
-    - docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    - docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  # Push the image to ECR
   only:
     - main  # Trigger this job only for the main branch
 
 # Step 3: Install kubectl
 install_kubectl:
   stage: install_kubectl
-  image: ubuntu:latest
+  image: ubuntu:20.04  # Ubuntu image for installing kubectl
   before_script:
     - apt-get update && apt-get install -y curl unzip
   script:
@@ -57,9 +62,15 @@ install_kubectl:
 # Step 4: Configure kubectl for EKS and Deploy to the Cluster
 deploy_to_eks:
   stage: deploy
-  image: lachlanevenson/k8s-kubectl:latest
+  image: lachlanevenson/k8s-kubectl:latest  # Kubernetes kubectl image for deployment
   script:
     - echo "Configuring kubectl for EKS"
     - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $CLUSTER_NAME
     - kubectl get nodes
-   
+    - echo "Deploying to EKS"
+    - sed -i "s|REPOSITORY_TAG|$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" ./deploy.yaml  # Replace the placeholder in deployment.yaml
+    - kubectl apply -f ./deploy.yaml  # Apply the updated deployment.yaml to the cluster
+  only:
+    - main  # Trigger this job only for the main branch
+  needs:
+    - build_and_push_to_ecr  # Ensure this job runs only after the image is pushed to ECR
