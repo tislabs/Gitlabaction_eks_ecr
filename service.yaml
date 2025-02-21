@@ -4,9 +4,9 @@ metadata:
   name: nginx-service
 spec:
   selector:
-    app: nginx
+    app: nginx  # Match the label from your NGINX Deployment
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: LoadBalancer  # Optional: Use LoadBalancer to expose to the internet
+      port: 80       # Expose port 80 for HTTP traffic
+      targetPort: 80  # Target port where NGINX is running
+  type: ClusterIP   # Internal cluster exposure (no LoadBalancer)
