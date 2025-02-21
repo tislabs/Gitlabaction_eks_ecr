@@ -5,19 +5,11 @@ stages:
 variables:
   AWS_DEFAULT_REGION: eu-north-1
   CLUSTER_NAME: demo-cluster
-  ECR_REPOSITORY: <your-ecr-repo>  # Replace with your ECR repository name
+  ECR_REPOSITORY: 992382840772.dkr.ecr.eu-north-1.amazonaws.com  # Replace with your ECR repository name
   IMAGE_TAG: latest
+  NGINX_IMAGE: nginx:latest  # Use the official NGINX Docker image
 
-before_script:
-  - apt-get update && apt-get install -y curl
-  - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  - unzip awscliv2.zip
-  - sudo ./aws/install
-  - curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/amd64/kubectl"
-  - chmod +x kubectl
-  - mv kubectl /usr/local/bin/
-  - aws --version
-  - kubectl version --client
+
 
 # Build and push Docker image to ECR
 build_and_push:
@@ -28,8 +20,8 @@ build_and_push:
   script:
     - docker --version
     - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-    - docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
-    - docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+    - docker pull $NGINX_IMAGE
+    - docker tag $NGINX_IMAGE $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
     - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
 # Deploy to EKS using kubectl
