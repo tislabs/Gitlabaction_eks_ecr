@@ -11,7 +11,7 @@ variables:
   ECR_REPOSITORY: $CI_ECR_REPOSITORY  # Set your ECR repository name (GitLab variable)
   IMAGE_TAG: $CI_COMMIT_REF_NAME  # GitLab default for branch name
   AWS_ACCOUNT_ID: $CI_AWS_ACCOUNT_ID  # Set your AWS Account ID (GitLab variable)
-  ECR_REGISTRY: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com  # ECR registry URL
+  ECR_REGISTRY: $992382840772.dkr.ecr.eu-north-1.amazonaws.com
 
 # Step 1: AWS Authentication and Setup
 login_to_aws:
