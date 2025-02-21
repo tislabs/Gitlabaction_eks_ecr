@@ -5,7 +5,7 @@ stages:
 variables:
   AWS_DEFAULT_REGION: eu-north-1
   CLUSTER_NAME: demo-cluster
-  ECR_REPOSITORY: 992382840772.dkr.ecr.eu-north-1.amazonaws.com  # Replace with your ECR repository name test
+  ECR_REPOSITORY: 992382840772.dkr.ecr.eu-north-1.amazonaws.com 
   IMAGE_TAG: latest
   NGINX_IMAGE: nginx:latest  # Use the official NGINX Docker image
 
