@@ -8,7 +8,7 @@ stages:
 variables:
   AWS_DEFAULT_REGION: $CI_AWS_REGION
   CLUSTER_NAME: $CI_EKS_CLUSTER_NAME
-  ECR_REPOSITORY: $CI_ECR_REPOSITORY  # Replace with your ECR repository name
+  ECR_REPOSITORY: $CI_ECR_REPOSITORY  # Replace with your ECR repository name om
   IMAGE_TAG: $CI_COMMIT_REF_NAME
   AWS_ACCOUNT_ID: $CI_AWS_ACCOUNT_ID  # Set this in GitLab CI/CD variables
   ECR_REGISTRY: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
